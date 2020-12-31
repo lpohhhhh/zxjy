@@ -75,61 +75,61 @@
 
     <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
 
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
+    <el-dialog fullscreen :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left: 50px">
-        <!-- <el-form-item label="Type" prop="type">
-          <el-select v-model="temp.type" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
-          </el-select>
-        </el-form-item> -->
-        <el-form-item label="Date" prop="timestamp">
-          <el-date-picker v-model="temp.timestamp" type="datetime" placeholder="Please pick a date" />
-        </el-form-item>
-        <el-form-item label="Title" prop="title">
+        <el-form-item label="标题" prop="title">
           <el-input v-model="temp.title" />
         </el-form-item>
-        <el-form-item label="Status">
-          <el-select v-model="temp.status" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in statusOptions" :key="item" :label="item" :value="item" />
-          </el-select>
+        <el-form-item label="标题" prop="title">
+          <el-upload
+          action="https://jsonplaceholder.typicode.com/posts/"
+          list-type="picture-card"
+          :on-preview="handlePictureCardPreview"
+          :on-success="handleUploadSuccess"
+          :on-remove="handleUploadRemove">
+          <i class="el-icon-plus"></i>
+        </el-upload>
+        <el-dialog :visible.sync="dialogVisible">
+          <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
         </el-form-item>
-        <el-form-item label="Imp">
-          <el-rate v-model="temp.importance" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="3" style="margin-top: 8px" />
+        <el-form-item label="试看内容" prop="try">
+          <tinymce v-model="temp.try" :height="300" :width="600" />
         </el-form-item>
-        <el-form-item label="Remark">
-          <el-input v-model="temp.remark" :autosize="{ minRows: 2, maxRows: 4 }" type="textarea" placeholder="Please input" />
+        <el-form-item label="课程内容" prop="content">
+          <tinymce v-model="temp.content" :height="300" :width="600" />
+        </el-form-item>
+
+        <el-form-item label="课程价格">
+          <el-input-number v-model="temp.price" :min="0" label="价格"></el-input-number>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-radio-group v-model="temp.status">
+            <el-radio :label="0">下架</el-radio>
+            <el-radio :label="1">上架</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false"> Cancel </el-button>
+        <el-button @click="dialogFormVisible = false"> 取消 </el-button>
         <el-button type="primary" @click="dialogStatus === 'create' ? createData() : updateData()">
-          Confirm
+          提交
         </el-button>
       </div>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics">
-      <el-table :data="pvData" border fit highlight-current-row style="width: 100%">
-        <el-table-column prop="key" label="Channel" />
-        <el-table-column prop="pv" label="Pv" />
-      </el-table>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="dialogPvVisible = false">Confirm</el-button>
-      </span>
-    </el-dialog>
   </div>
 </template>
 
 <script>
 import {
-  fetchPv,
-  createArticle,
-  updateArticle
-} from '@/api/article'
-import {
-  fetchList
+  fetchList,
+  createCourse,
+  updateCourse,
+  deleteCourse
 } from '@/api/course'
 import waves from '@/directive/waves' // waves directive
+import Tinymce from '@/components/Tinymce'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 
 const statusOptions = {
@@ -139,7 +139,7 @@ const statusOptions = {
 
 export default {
   name: 'ComplexTable',
-  components: { Pagination },
+  components: { Pagination, Tinymce },
   directives: { waves },
   filters: {
     statusFilter(status) {
@@ -167,37 +167,32 @@ export default {
       showReviewer: false,
       temp: {
         id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
+        try: '',
+        content: '',
         title: '',
-        type: '',
-        status: 'published'
+        status: '1',
+        price: 0,
+        cover: ''
       },
       dialogFormVisible: false,
       dialogStatus: '',
       textMap: {
-        update: 'Edit',
-        create: 'Create'
+        update: '修改',
+        create: '新增'
       },
-      dialogPvVisible: false,
-      pvData: [],
       rules: {
-        type: [
-          { required: true, message: 'type is required', trigger: 'change' }
-        ],
-        timestamp: [
-          {
-            type: 'date',
-            required: true,
-            message: 'timestamp is required',
-            trigger: 'change'
-          }
-        ],
         title: [
-          { required: true, message: 'title is required', trigger: 'blur' }
+          { required: true, message: '标题不能为空', trigger: 'blur' }
+        ],
+        try: [
+          { required: true, message: '试看内容不能为空', trigger: 'blur' }
+        ],
+        content: [
+          { required: true, message: '课程内容不能为空', trigger: 'blur' }
         ]
-      }
+      },
+      dialogImageUrl: '',
+      dialogVisible: false
     }
   },
   created() {
@@ -244,12 +239,12 @@ export default {
     resetTemp() {
       this.temp = {
         id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
+        try: '',
+        content: '',
         title: '',
-        status: 'published',
-        type: ''
+        status: '1',
+        price: 0,
+        cover: ''
       }
     },
     handleCreate() {
@@ -265,7 +260,7 @@ export default {
         if (valid) {
           this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
           this.temp.author = 'vue-element-admin'
-          createArticle(this.temp).then(() => {
+          createCourse(this.temp).then(() => {
             this.list.unshift(this.temp)
             this.dialogFormVisible = false
             this.$notify({
@@ -292,7 +287,7 @@ export default {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
           tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-          updateArticle(tempData).then(() => {
+          updateCourse(tempData).then(() => {
             const index = this.list.findIndex(v => v.id === this.temp.id)
             this.list.splice(index, 1, this.temp)
             this.dialogFormVisible = false
@@ -307,24 +302,33 @@ export default {
       })
     },
     handleDelete(row, index) {
-      this.$notify({
+      deleteCourse(row).then(response=>{
+        this.$notify({
         title: '提示',
         message: '删除成功！',
         type: 'success',
         duration: 2000
       })
-      this.list.splice(index, 1)
-    },
-    handleFetchPv(pv) {
-      fetchPv(pv).then(response => {
-        this.pvData = response.data.pvData
-        this.dialogPvVisible = true
       })
+     
+      this.list.splice(index, 1)
     },
     getSortClass: function(key) {
       const sort = this.listQuery.sort
       return sort === `+${key}` ? 'ascending' : 'descending'
-    }
+    },
+    // 文件列表移除文件时的钩子
+    handleUploadRemove(file, fileList) {
+        console.log(file, fileList);
+      },
+      // 点击文件列表中已上传的文件时的钩子
+      handlePictureCardPreview(file) {
+        this.dialogImageUrl = file.url;
+        this.dialogVisible = true;
+      },
+      handleUploadSuccess(response, file, fileList) {
+        console.log(response, file, fileList);
+      }
   }
 }
 </script>
