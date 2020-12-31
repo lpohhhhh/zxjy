@@ -61,9 +61,14 @@
           <el-button v-if="row.status == 1" size="mini" @click="handleModifyStatus(row, 0)">
             下架
           </el-button>
-          <el-button v-if="row.status != 'deleted'" size="mini" type="danger" @click="handleDelete(row, $index)">
+          <el-popconfirm
+          style="margin-left:10px;"
+           title="这是一段内容确定删除吗？" @onConfirm="handleDelete(row, $index)">
+           <el-button slot="reference" v-if="row.status != 'deleted'" size="mini" type="danger">
             删除
           </el-button>
+          </el-popconfirm>
+          
         </template>
       </el-table-column>
     </el-table>
@@ -303,8 +308,8 @@ export default {
     },
     handleDelete(row, index) {
       this.$notify({
-        title: 'Success',
-        message: 'Delete Successfully',
+        title: '提示',
+        message: '删除成功！',
         type: 'success',
         duration: 2000
       })
