@@ -5,10 +5,10 @@
         新增
       </el-button>
       <div style="m">
-        <el-select v-model="listQuery.importance" placeholder="Imp" clearable style="width: 90px;margin-right:10px;" class="filter-item">
-          <el-option v-for="item in importanceOptions" :key="item" :label="item" :value="item" />
+        <el-select v-model="listQuery.status" placeholder="商品状态" clearable style="width: 90px;margin-right:10px;" class="filter-item">
+          <el-option v-for="(item,k) in statusOptions" :key="k" :label="item" :value="k" />
         </el-select>
-        <el-input v-model="listQuery.title" placeholder="Title" style="width: 200px;margin-right:10px;" class="filter-item" @keyup.enter.native="handleFilter" />
+        <el-input v-model="listQuery.title" placeholder="标题" style="width: 200px;margin-right:10px;" class="filter-item" @keyup.enter.native="handleFilter" />
         <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
           搜索
         </el-button>
@@ -26,8 +26,8 @@
           <div style="display: flex;">
             <img src="https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80" style="width: 100px;height: 50px;margin-right: 10px;" alt="">
             <div style="display: flex;flex-direction: column;justify-content: space-between;">
-              <span>文字文字</span>
-              <span style="color: red;">￥100</span>
+              <span>{{ row.title }}</span>
+              <span style="color: red;">￥{{row.price}}</span>
             </div>
           </div>
         </template>
@@ -40,14 +40,14 @@
       </el-table-column>
       <el-table-column label="状态" class-name="status-col" width="100">
         <template slot-scope="{ row }">
-          <el-tag :type="row.status | statusFilter">
-            {{ row.status }}
+          <el-tag :type="row.status ? 'success' : 'danger'">
+            {{ row.status | statusFilter }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" width="150px" align="center">
         <template slot-scope="{ row }">
-          <span>{{ row.timestamp}}</span>
+          <span>{{ row.create_time}}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="230" class-name="small-padding fixed-width">
@@ -55,10 +55,10 @@
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             编辑
           </el-button>
-          <el-button v-if="row.status != 'published'" size="mini" type="success" @click="handleModifyStatus(row, 'published')">
+          <el-button v-if="row.status == 0" size="mini" type="success" @click="handleModifyStatus(row, 1)">
             上架
           </el-button>
-          <el-button v-if="row.status != 'draft'" size="mini" @click="handleModifyStatus(row, 'draft')">
+          <el-button v-if="row.status == 1" size="mini" @click="handleModifyStatus(row, 0)">
             下架
           </el-button>
           <el-button v-if="row.status != 'deleted'" size="mini" type="danger" @click="handleDelete(row, $index)">
@@ -72,11 +72,11 @@
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left: 50px">
-        <el-form-item label="Type" prop="type">
+        <!-- <el-form-item label="Type" prop="type">
           <el-select v-model="temp.type" class="filter-item" placeholder="Please select">
             <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
           </el-select>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="Date" prop="timestamp">
           <el-date-picker v-model="temp.timestamp" type="datetime" placeholder="Please pick a date" />
         </el-form-item>
@@ -117,26 +117,20 @@
 
 <script>
 import {
-  fetchList,
   fetchPv,
   createArticle,
   updateArticle
 } from '@/api/article'
+import {
+  fetchList
+} from '@/api/course'
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 
-const calendarTypeOptions = [
-  { key: 'CN', display_name: 'China' },
-  { key: 'US', display_name: 'USA' },
-  { key: 'JP', display_name: 'Japan' },
-  { key: 'EU', display_name: 'Eurozone' }
-]
-
-// arr to obj, such as { CN : "China", US : "USA" }
-const calendarTypeKeyValue = calendarTypeOptions.reduce((acc, cur) => {
-  acc[cur.key] = cur.display_name
-  return acc
-}, {})
+const statusOptions = {
+  0: '已下架',
+  1: '已上架'
+}              
 
 export default {
   name: 'ComplexTable',
@@ -144,16 +138,8 @@ export default {
   directives: { waves },
   filters: {
     statusFilter(status) {
-      const statusMap = {
-        published: 'success',
-        draft: 'info',
-        deleted: 'danger'
-      }
-      return statusMap[status]
+      return statusOptions[status]
     },
-    typeFilter(type) {
-      return calendarTypeKeyValue[type]
-    }
   },
   data() {
     return {
@@ -164,18 +150,15 @@ export default {
       listQuery: {
         page: 1,
         limit: 20,
-        importance: undefined,
         title: undefined,
-        type: undefined,
+        status: undefined,
         sort: '+id'
       },
-      importanceOptions: [1, 2, 3],
-      calendarTypeOptions,
       sortOptions: [
         { label: 'ID Ascending', key: '+id' },
         { label: 'ID Descending', key: '-id' }
       ],
-      statusOptions: ['published', 'draft', 'deleted'],
+      statusOptions,
       showReviewer: false,
       temp: {
         id: undefined,
