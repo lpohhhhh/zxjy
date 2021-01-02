@@ -9,6 +9,7 @@ const course = require('./course')
 const media = require('./media')
 const audio = require('./audio')
 const video = require('./video')
+const column = require('./column')
 
 const mocks = [
   ...user,
@@ -18,7 +19,8 @@ const mocks = [
   ...course,
   ...media,
   ...audio,
-  ...video
+  ...video,
+  ...column
 ]
 
 // for front mock
