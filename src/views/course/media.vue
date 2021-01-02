@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="filter-container" style="display:flex;justify-content: space-between;">
       <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-edit" @click="handleCreate">
-        新增
+        新增图文
       </el-button>
       <div style="m">
         <el-select v-model="listQuery.status" placeholder="商品状态" clearable style="width: 90px;margin-right:10px;" class="filter-item">
@@ -21,21 +21,20 @@
           <span>{{ row.id }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="内容" min-width="150px">
+      <el-table-column label="图文内容" min-width="150px">
         <template slot-scope="{ row }">
           <div style="display: flex;">
             <img src="https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80" style="width: 100px;height: 50px;margin-right: 10px;" alt="">
             <div style="display: flex;flex-direction: column;justify-content: space-between;">
               <span>{{ row.title }}</span>
-              <span style="color: red;">￥{{row.price}}</span>
+              <span style="color: red;">￥{{ row.price }}</span>
             </div>
           </div>
         </template>
       </el-table-column>
       <el-table-column label="订阅量" align="center" width="95">
         <template slot-scope="{ row }">
-          <span v-if="row.pageviews" class="link-type" @click="handleFetchPv(row.pageviews)">{{ row.pageviews }}</span>
-          <span v-else>0</span>
+          <span>{{ row.sub_count }}</span>
         </template>
       </el-table-column>
       <el-table-column label="状态" class-name="status-col" width="100">
@@ -47,7 +46,7 @@
       </el-table-column>
       <el-table-column label="创建时间" width="150px" align="center">
         <template slot-scope="{ row }">
-          <span>{{ row.create_time}}</span>
+          <span>{{ row.create_time }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="230" class-name="small-padding fixed-width">
@@ -62,13 +61,15 @@
             下架
           </el-button>
           <el-popconfirm
-          style="margin-left:10px;"
-           title="这是一段内容确定删除吗？" @onConfirm="handleDelete(row, $index)">
-           <el-button slot="reference" v-if="row.status != 'deleted'" size="mini" type="danger">
-            删除
-          </el-button>
+            style="margin-left:10px;"
+            title="这是一段内容确定删除吗？"
+            @onConfirm="handleDelete(row, $index)"
+          >
+            <el-button v-if="row.status != 'deleted'" slot="reference" size="mini" type="danger">
+              删除
+            </el-button>
           </el-popconfirm>
-          
+
         </template>
       </el-table-column>
     </el-table>
@@ -82,16 +83,17 @@
         </el-form-item>
         <el-form-item label="标题" prop="title">
           <el-upload
-          action="https://jsonplaceholder.typicode.com/posts/"
-          list-type="picture-card"
-          :on-preview="handlePictureCardPreview"
-          :on-success="handleUploadSuccess"
-          :on-remove="handleUploadRemove">
-          <i class="el-icon-plus"></i>
-        </el-upload>
-        <el-dialog :visible.sync="dialogVisible">
-          <img width="100%" :src="dialogImageUrl" alt="">
-        </el-dialog>
+            action="https://jsonplaceholder.typicode.com/posts/"
+            list-type="picture-card"
+            :on-preview="handlePictureCardPreview"
+            :on-success="handleUploadSuccess"
+            :on-remove="handleUploadRemove"
+          >
+            <i class="el-icon-plus" />
+          </el-upload>
+          <el-dialog :visible.sync="dialogVisible">
+            <img width="100%" :src="dialogImageUrl" alt="">
+          </el-dialog>
         </el-form-item>
         <el-form-item label="试看内容" prop="try">
           <tinymce v-model="temp.try" :height="300" :width="600" />
@@ -101,7 +103,7 @@
         </el-form-item>
 
         <el-form-item label="课程价格">
-          <el-input-number v-model="temp.price" :min="0" label="价格"></el-input-number>
+          <el-input-number v-model="temp.price" :min="0" label="价格" />
         </el-form-item>
         <el-form-item label="状态">
           <el-radio-group v-model="temp.status">
@@ -124,10 +126,10 @@
 <script>
 import {
   fetchList,
-  createCourse,
-  updateCourse,
-  deleteCourse
-} from '@/api/course'
+  createMedia,
+  updateMedia,
+  deleteMedia
+} from '@/api/media'
 import waves from '@/directive/waves' // waves directive
 import Tinymce from '@/components/Tinymce'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
@@ -135,7 +137,7 @@ import Pagination from '@/components/Pagination' // secondary package based on e
 const statusOptions = {
   0: '已下架',
   1: '已上架'
-}              
+}
 
 export default {
   name: 'ComplexTable',
@@ -144,7 +146,7 @@ export default {
   filters: {
     statusFilter(status) {
       return statusOptions[status]
-    },
+    }
   },
   data() {
     return {
@@ -260,7 +262,7 @@ export default {
         if (valid) {
           this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
           this.temp.author = 'vue-element-admin'
-          createCourse(this.temp).then(() => {
+          createMedia(this.temp).then(() => {
             this.list.unshift(this.temp)
             this.dialogFormVisible = false
             this.$notify({
@@ -287,7 +289,7 @@ export default {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
           tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-          updateCourse(tempData).then(() => {
+          updateMedia(tempData).then(() => {
             const index = this.list.findIndex(v => v.id === this.temp.id)
             this.list.splice(index, 1, this.temp)
             this.dialogFormVisible = false
@@ -302,15 +304,15 @@ export default {
       })
     },
     handleDelete(row, index) {
-      deleteCourse(row).then(response=>{
+      deleteMedia(row).then(response => {
         this.$notify({
-        title: '提示',
-        message: '删除成功！',
-        type: 'success',
-        duration: 2000
+          title: '提示',
+          message: '删除成功！',
+          type: 'success',
+          duration: 2000
+        })
       })
-      })
-     
+
       this.list.splice(index, 1)
     },
     getSortClass: function(key) {
@@ -319,16 +321,16 @@ export default {
     },
     // 文件列表移除文件时的钩子
     handleUploadRemove(file, fileList) {
-        console.log(file, fileList);
-      },
-      // 点击文件列表中已上传的文件时的钩子
-      handlePictureCardPreview(file) {
-        this.dialogImageUrl = file.url;
-        this.dialogVisible = true;
-      },
-      handleUploadSuccess(response, file, fileList) {
-        console.log(response, file, fileList);
-      }
+      console.log(file, fileList)
+    },
+    // 点击文件列表中已上传的文件时的钩子
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url
+      this.dialogVisible = true
+    },
+    handleUploadSuccess(response, file, fileList) {
+      console.log(response, file, fileList)
+    }
   }
 }
 </script>

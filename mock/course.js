@@ -15,71 +15,11 @@ for (let i = 0; i < count; i++) {
     content: '@cparagraph',
     'price|1': [10,100,100,1000,9],
     'status|1': [0,1],
+    'sub_count|1':[0,10,3,5,100,500,153],
     create_time: '@now',
     updated_time: '@now'
   }))
 }
 
-module.exports = [
-  {
-    url: '/vue-element-admin/course/list',
-    type: 'get',
-    response: config => {
-      const { status, title, page = 1, limit = 20, sort } = config.query
-
-      let mockList = List.filter(item => {
-        // if (type && item.type !== type) return false
-        if (title && item.title.indexOf(title) < 0) return false
-        return true
-      })
-
-      if (sort === '-id') {
-        mockList = mockList.reverse()
-      }
-
-      const pageList = mockList.filter((item, index) => index < limit * page && index >= limit * (page - 1))
-
-      return {
-        code: 20000,
-        data: {
-          total: mockList.length,
-          items: pageList
-        }
-      }
-    }
-  },
-
-  {
-    url: '/vue-element-admin/course/create',
-    type: 'post',
-    response: _ => {
-      return {
-        code: 20000,
-        data: 'success'
-      }
-    }
-  },
-
-  {
-    url: '/vue-element-admin/course/update',
-    type: 'post',
-    response: _ => {
-      return {
-        code: 20000,
-        data: 'success'
-      }
-    }
-  },
-
-  {
-    url: '/vue-element-admin/course/delete',
-    type: 'post',
-    response: _ => {
-      return {
-        code: 20000,
-        data: 'success'
-      }
-    }
-  }
-]
+module.exports = []
 
