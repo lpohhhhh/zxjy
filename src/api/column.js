@@ -8,6 +8,14 @@ export function fetchList(query) {
   })
 }
 
+export function fetchDetail(query) {
+  return request({
+    url: '/vue-element-admin/column/detail',
+    method: 'get',
+    params: query
+  })
+}
+
 export function createColumn(data) {
   return request({
     url: '/vue-element-admin/column/create',

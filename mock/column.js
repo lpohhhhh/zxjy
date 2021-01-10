@@ -61,7 +61,26 @@ module.exports = [
       }
     }
   },
+  {
+    url: '/vue-element-admin/column/detail',
+    type: 'get',
+    response: config => {
+      let { id } = config.query;
+      let data = List.find(item=>item.id==id);
 
+      if(!data) {
+        return {
+          code: 20000,
+          data: false
+        }
+      }
+      return {
+        code: 20000,
+        data
+      }
+
+    }
+  },
   {
     url: '/vue-element-admin/column/update',
     type: 'post',
