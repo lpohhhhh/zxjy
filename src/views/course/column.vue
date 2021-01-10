@@ -85,7 +85,7 @@
         <el-form-item label="标题" prop="title">
           <el-input v-model="temp.title" />
         </el-form-item>
-        <el-form-item label="标题" prop="title">
+        <el-form-item label="封面" prop="title">
           <el-upload action="https://jsonplaceholder.typicode.com/posts/" list-type="picture-card" :on-preview="handlePictureCardPreview" :on-success="handleUploadSuccess" :on-remove="handleUploadRemove">
             <i class="el-icon-plus" />
           </el-upload>
@@ -94,13 +94,15 @@
           </el-dialog>
         </el-form-item>
         <el-form-item label="课程介绍" prop="try">
-          <tinymce v-model="temp.try" :height="300" :width="600" />
+          <el-input
+          type="textarea"
+          :rows="3"
+          placeholder="请输入课程介绍"
+          v-model="temp.try">
+        </el-input>
         </el-form-item>
         <el-form-item label="课程内容" prop="content">
-          <el-upload class="upload-demo" action="https://jsonplaceholder.typicode.com/posts/" :on-remove="handleRemove" :on-change="handleUploadChange" accept=".mp4,.avi,.wmv,.mov,.flv,.rmvb" :limit="1" :file-list="fileList">
-            <el-button size="small" type="primary">上传视频</el-button>
-            <div slot="tip" class="el-upload__tip">格式支持mp4,avi,wmv,mov,flv,rmvb;文件最大不超过5G。当前版本最大支持720高清转码</div>
-          </el-upload>
+         <tinymce v-model="temp.content" :height="300" :width="600" />
         </el-form-item>
 
         <el-form-item label="课程价格">
@@ -110,6 +112,12 @@
           <el-radio-group v-model="temp.status">
             <el-radio :label="0">下架</el-radio>
             <el-radio :label="1">上架</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="更新状态">
+          <el-radio-group v-model="temp.isend">
+            <el-radio :label="0">连载中</el-radio>
+            <el-radio :label="1">已完结</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -174,6 +182,7 @@ export default {
         content: '',
         title: '',
         status: '1',
+        isend: 0,
         price: 0,
         cover: ''
       },
@@ -264,9 +273,6 @@ export default {
         this.$refs['dataForm'].clearValidate()
       })
     },
-    openDetail(row) {
-      console.log(row);
-    },
     createData() {
       this.$refs['dataForm'].validate(valid => {
         if (valid) {
@@ -346,7 +352,16 @@ export default {
     },
     handleUploadChange(file, fileList) {
       this.fileList = fileList.slice(-3)
-    }
+    },
+    openDetail(row) {
+      console.log(row);
+      this.$router.push({
+        name:'ColumnDeatil',
+        query:{
+          id: row.id
+        }
+      })
+    },
   }
 }
 </script>

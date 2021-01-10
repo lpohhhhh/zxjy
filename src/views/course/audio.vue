@@ -77,7 +77,7 @@
         <el-form-item label="标题" prop="title">
           <el-input v-model="temp.title" />
         </el-form-item>
-        <el-form-item label="标题" prop="title">
+        <el-form-item label="封面" prop="title">
           <el-upload action="https://jsonplaceholder.typicode.com/posts/" list-type="picture-card" :on-preview="handlePictureCardPreview" :on-success="handleUploadSuccess" :on-remove="handleUploadRemove">
             <i class="el-icon-plus" />
           </el-upload>
